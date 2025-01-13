@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks Manu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .board-container {
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .board {
+      width: 300px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .board-header {
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: white;
+      background-color: #007bff;
+      border-radius: 8px 8px 0 0;
+      position: relative;
+    }
+    .board-header .menu-button {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: white;
+      cursor: pointer;
+    }
+    .task-container {
+      margin-top: 10px;
+      padding: 10px;
+      flex-grow: 1;
+    }
+    .task {
+      background: #e9e9e9;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    .task h3 {
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .task .menu-button {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1rem;
+      color: #333;
+      cursor: pointer;
+    }
+    .add-task-button {
+      margin: 10px auto;
+      display: block;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #a2aeba;
+      color: black;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .add-task-button:hover {
+      background-color: #4f6378;
+      color: white;      
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      width: 400px;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+    .modal button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .modal button:hover {
+      background-color: #0056b3;
+    }
+    .color-palette {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .color-option {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .color-option:hover {
+      border: 2px solid #000;
+    }
+    .color-option.selected {
+      border: 2px solid #000;
+    }
+    .checked {
+      display: none;
+    }
+    .add-checklist-item {
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 10px;
+    }
+    .add-checklist-item:hover {
+      color: #0056b3;
+    }
+    .task-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .delete-task-button {
+      background: lightgray;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      color: black;
+      padding: 5px 8px;
+      border-radius: 4px;
+    }
+    .delete-task-button:hover {
+      background: #d6d6d6;
+    }
+  </style>
+</head>
+<body>
+  <div class="board-controls">
+    <button onclick="addBoard()" style="padding: 10px 15px; border: none; border-radius: 5px; background-color: #192129; color: white; font-size: 14px; cursor: pointer;">+ Add Board</button>
+  </div>
+  <div class="board-container" id="board-container">
+    <div class="board" id="board-1">
+      <div class="board-header">To Do
+        <button class="menu-button" onclick="openBoardModal('board-1')">...</button>
+      </div>
+      <div class="task-container"></div>
+      <button class="add-task-button" onclick="addTask('board-1')">+ Add Task</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal" id="board-modal">
+    <h3>Edit Board</h3>
+    <label for="board-name">Board Name:</label>
+    <input type="text" id="board-name" style="width: 100%; margin-bottom: 10px;">
+    <label>Choose a color:</label>
+    <div class="color-palette">
+      <div class="color-option" style="background-color: #007bff;" onclick="selectColor('#007bff')"></div>
+      <div class="color-option" style="background-color: #ff5733;" onclick="selectColor('#ff5733')"></div>
+      <div class="color-option" style="background-color: #28a745;" onclick="selectColor('#28a745')"></div>
+      <div class="color-option" style="background-color: #ffc107;" onclick="selectColor('#ffc107')"></div>
+      <div class="color-option" style="background-color: #6f42c1;" onclick="selectColor('#6f42c1')"></div>
+      <div class="color-option" style="background-color: #fd7e14;" onclick="selectColor('#fd7e14')"></div>
+      <div class="color-option" style="background-color: #20c997;" onclick="selectColor('#20c997')"></div>
+      <div class="color-option" style="background-color: #17a2b8;" onclick="selectColor('#17a2b8')"></div>
+      <div class="color-option" style="background-color: #e83e8c;" onclick="selectColor('#e83e8c')"></div>
+      <div class="color-option" style="background-color: #343a40;" onclick="selectColor('#343a40')"></div>
+    </div>
+    <button onclick="deleteBoard()" style="margin-top: 10px; padding: 10px 15px; border: none; border-radius: 5px; background-color: red; color: white; font-size: 14px; cursor: pointer;">Delete Board</button>
+    <button onclick="saveBoardChanges()">Save Changes</button>
+  </div>
+
+  <div class="modal" id="task-modal">
+    <div class="task-modal-header">
+      <h3>Task Details</h3>
+      <button class="delete-task-button" onclick="deleteTaskFromModal()">X</button>
+    </div>
+    <div id="checklist-container"></div>
+    <div class="add-checklist-item" onclick="addChecklistItemFromModal()">+ Add checklist item</div>
+  </div>
+
+  <script>
+    let selectedBoard = null;
+    let selectedColor = "#007bff";
+    let selectedTask = null;
+
+    function addBoard() {
+      const boardId = `board-${Date.now()}`;
+      const boardContainer = document.getElementById('board-container');
+      const newBoard = document.createElement('div');
+      newBoard.className = 'board';
+      newBoard.id = boardId;
+      newBoard.innerHTML = `
+        <div class="board-header" style="background-color: ${selectedColor};">New Board
+          <button class="menu-button" onclick="openBoardModal('${boardId}')">...</button>
+        </div>
+        <div class="task-container"></div>
+        <button class="add-task-button" onclick="addTask('${boardId}')">+ Add Task</button>
+      `;
+      boardContainer.appendChild(newBoard);
+    }
+
+    function openBoardModal(boardId) {
+      selectedBoard = document.getElementById(boardId);
+      const boardHeader = selectedBoard.querySelector('.board-header');
+      document.getElementById('board-name').value = boardHeader.childNodes[0].nodeValue.trim();
+      document.getElementById('board-modal').style.display = 'block';
+      document.getElementById('modal-overlay').style.display = 'block';
+    }
+
+    function saveBoardChanges() {
+      const boardHeader = selectedBoard.querySelector('.board-header');
+      boardHeader.childNodes[0].nodeValue = document.getElementById('board-name').value + ' ';
+      boardHeader.style.backgroundColor = selectedColor;
+      closeModal();
+    }
+
+    function deleteBoard() {
+      if (selectedBoard) {
+        selectedBoard.remove();
+        closeModal();
+      }
+    }
+
+    function selectColor(color) {
+      selectedColor = color;
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('selected');
+      });
+      document.querySelector(`.color-option[style*="${color}"]`).classList.add('selected');
+    }
+
+    function addTask(boardId) {
+      const taskContainer = document.querySelector(`#${boardId} .task-container`);
+      const taskTitle = prompt("Enter task title:");
+      if (taskTitle) {
+        const task = document.createElement('div');
+        task.className = 'task';
+        task.innerHTML = `
+          <h3>${taskTitle} (0)</h3>
+          <button class="menu-button" onclick="openTaskModal(this)">...</button>
+          <div class="checklist" style="display: none;"></div>
+        `;
+        taskContainer.appendChild(task);
+      }
+    }
+
+    function openTaskModal(button) {
+      selectedTask = button.parentElement;
+      const checklist = selectedTask.querySelector('.checklist');
+      const checklistContainer = document.getElementById('checklist-container');
+      checklistContainer.innerHTML = checklist.innerHTML;
+      checklistContainer.querySelectorAll('div').forEach(item => {
+        const checkbox = item.querySelector('input[type=checkbox]');
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            item.remove();
+            updateTaskCount();
+          }
+        });
+      });
+      document.querySelector('.task-modal-header h3').textContent = selectedTask.querySelector('h3').textContent.split('(')[0].trim();      
+      document.getElementById('task-modal').style.display = 'block';
+      document.getElementById('modal-overlay').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.querySelectorAll('.modal').forEach(modal => modal.style.display = 'none');
+      document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function addChecklistItemFromModal() {
+      const itemText = prompt("Enter checklist item:");
+      if (itemText) {
+        const checklist = selectedTask.querySelector('.checklist');
+        const item = document.createElement('div');
+        item.innerHTML = `
+          <input type="checkbox"> <span>${itemText}</span>
+        `;
+        checklist.appendChild(item);
+        updateTaskCount();
+      }
+    }
+
+    function updateTaskCount() {
+      const checklist = selectedTask.querySelector('.checklist');
+      const total = checklist.children.length;
+      const taskTitle = selectedTask.querySelector('h3').textContent.split('(')[0].trim();
+      selectedTask.querySelector('h3').textContent = `${taskTitle} (${total})`;
+    }
+
+    function deleteTaskFromModal() {
+      selectedTask.remove();
+      closeModal();
+    }
+  </script>
+</body>
+</html>
