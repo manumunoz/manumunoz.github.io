@@ -354,10 +354,13 @@
     }
 
     function dropTask(event, container) {
-      event.preventDefault();
-      const taskId = event.dataTransfer.getData("text/plain");
-      const task = document.getElementById(taskId);
-      container.appendChild(task);
+        event.preventDefault();
+        const taskId = event.dataTransfer.getData("text/plain");
+        const task = document.getElementById(taskId);
+        container.appendChild(task);
+
+        // Save the updated board and task structure
+        saveToLocalStorage();
     }
 
     function addChecklistItemFromModal() {
