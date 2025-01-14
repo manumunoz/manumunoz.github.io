@@ -158,6 +158,12 @@
     .add-checklist-item:hover {
       color: #0056b3;
     }
+    .checklist {
+      display: none; /* Hidden by default */
+    }
+    .task:hover .checklist {
+      display: block; /* Show on hover, or toggle this based on your requirements */
+    }
     .task-modal-header {
       display: flex;
       justify-content: space-between;
@@ -186,7 +192,7 @@
       <div class="board-header">To Do
         <button class="menu-button" onclick="openBoardModal('board-1')">...</button>
       </div>
-      <div class="task-container"></div>
+      <div class="task-container" ondragover="event.preventDefault()" ondrop="dropTask(event, this)"></div>
       <button class="add-task-button" onclick="addTask('board-1')">+ Add Task</button>
     </div>
   </div>
@@ -237,7 +243,7 @@
         <div class="board-header" style="background-color: ${selectedColor};">New Board
           <button class="menu-button" onclick="openBoardModal('${boardId}')">...</button>
         </div>
-        <div class="task-container"></div>
+        <div class="task-container" ondragover="event.preventDefault()" ondrop="dropTask(event, this)"></div>
         <button class="add-task-button" onclick="addTask('${boardId}')">+ Add Task</button>
       `;
       boardContainer.appendChild(newBoard);
@@ -277,65 +283,129 @@
       const taskContainer = document.querySelector(`#${boardId} .task-container`);
       const taskTitle = prompt("Enter task title:");
       if (taskTitle) {
+        const taskId = `task-${Date.now()}`;
         const task = document.createElement('div');
         task.className = 'task';
+        task.id = taskId;
+        task.setAttribute('draggable', 'true');
+        task.addEventListener('dragstart', dragTask);
         task.innerHTML = `
           <h3>${taskTitle} (0)</h3>
           <button class="menu-button" onclick="openTaskModal(this)">...</button>
           <div class="checklist" style="display: none;"></div>
         `;
         taskContainer.appendChild(task);
+        reassignTaskListeners(task); // Reassign task-specific functionalities
       }
     }
 
     function openTaskModal(button) {
       selectedTask = button.parentElement;
+
+      const taskTitle = selectedTask.querySelector('h3').textContent.split('(')[0].trim();
+      document.querySelector('.task-modal-header h3').innerHTML = `
+        <input type="text" id="task-name-input" value="${taskTitle}" style="width: 80%; font-size: 1.2rem;">
+      `;
+
       const checklist = selectedTask.querySelector('.checklist');
       const checklistContainer = document.getElementById('checklist-container');
       checklistContainer.innerHTML = checklist.innerHTML;
+
       checklistContainer.querySelectorAll('div').forEach(item => {
         const checkbox = item.querySelector('input[type=checkbox]');
         checkbox.addEventListener('change', () => {
           if (checkbox.checked) {
             item.remove();
-            updateTaskCount();
+            updateTaskCount(selectedTask); // Update counter after removal
           }
         });
       });
-      document.querySelector('.task-modal-header h3').textContent = selectedTask.querySelector('h3').textContent.split('(')[0].trim();      
+
       document.getElementById('task-modal').style.display = 'block';
       document.getElementById('modal-overlay').style.display = 'block';
     }
 
     function closeModal() {
+      if (selectedTask) {
+        const taskNameInput = document.getElementById('task-name-input');
+        if (taskNameInput) {
+          const newTaskName = taskNameInput.value.trim();
+          const currentCount = selectedTask.querySelector('h3').textContent.match(/\(\d+\)/);
+          selectedTask.querySelector('h3').textContent = `${newTaskName} ${currentCount ? currentCount[0] : '(0)'}`;
+        }
+
+        // Synchronize modal checklist with task checklist
+        const checklist = selectedTask.querySelector('.checklist');
+        const checklistContainer = document.getElementById('checklist-container');
+        checklist.innerHTML = checklistContainer.innerHTML;
+
+        updateTaskCount(selectedTask); // Final counter update
+      }
+
       document.querySelectorAll('.modal').forEach(modal => modal.style.display = 'none');
       document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function dragTask(event) {
+      event.dataTransfer.setData("text/plain", event.target.id);
+    }
+
+    function dropTask(event, container) {
+      event.preventDefault();
+      const taskId = event.dataTransfer.getData("text/plain");
+      const task = document.getElementById(taskId);
+      container.appendChild(task);
     }
 
     function addChecklistItemFromModal() {
       const itemText = prompt("Enter checklist item:");
       if (itemText) {
-        const checklist = selectedTask.querySelector('.checklist');
+        const checklistContainer = document.getElementById('checklist-container');
         const item = document.createElement('div');
         item.innerHTML = `
           <input type="checkbox"> <span>${itemText}</span>
         `;
-        checklist.appendChild(item);
-        updateTaskCount();
+        checklistContainer.appendChild(item);
+
+        // Synchronize the task's checklist with the modal
+        const checklist = selectedTask.querySelector('.checklist');
+        checklist.innerHTML = checklistContainer.innerHTML;
+
+        updateTaskCount(selectedTask); // Update the task count
       }
     }
 
-    function updateTaskCount() {
-      const checklist = selectedTask.querySelector('.checklist');
+    function updateTaskCount(task) {
+      const checklist = task.querySelector('.checklist');
       const total = checklist.children.length;
-      const taskTitle = selectedTask.querySelector('h3').textContent.split('(')[0].trim();
-      selectedTask.querySelector('h3').textContent = `${taskTitle} (${total})`;
+      const taskTitle = task.querySelector('h3').textContent.split('(')[0].trim();
+      task.querySelector('h3').textContent = `${taskTitle} (${total})`;
     }
 
     function deleteTaskFromModal() {
       selectedTask.remove();
       closeModal();
     }
+
+    function reassignTaskListeners(task) {
+      // Open task modal
+      const menuButton = task.querySelector('.menu-button');
+      menuButton.addEventListener('click', () => openTaskModal(menuButton));
+
+      // Ensure checklist items have proper behavior
+      const checklist = task.querySelector('.checklist');
+      if (checklist) {
+        checklist.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              checkbox.parentElement.remove();
+              updateTaskCount(task); // Pass the task here as well
+            }
+          });
+        });
+      }
+    }
+
   </script>
 </body>
 </html>
