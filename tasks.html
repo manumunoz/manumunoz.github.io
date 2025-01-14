@@ -234,19 +234,20 @@
     let selectedTask = null;
 
     function addBoard() {
-      const boardId = `board-${Date.now()}`;
-      const boardContainer = document.getElementById('board-container');
-      const newBoard = document.createElement('div');
-      newBoard.className = 'board';
-      newBoard.id = boardId;
-      newBoard.innerHTML = `
-        <div class="board-header" style="background-color: ${selectedColor};">New Board
-          <button class="menu-button" onclick="openBoardModal('${boardId}')">...</button>
-        </div>
-        <div class="task-container" ondragover="event.preventDefault()" ondrop="dropTask(event, this)"></div>
-        <button class="add-task-button" onclick="addTask('${boardId}')">+ Add Task</button>
-      `;
-      boardContainer.appendChild(newBoard);
+        const boardId = `board-${Date.now()}`;
+        const boardContainer = document.getElementById('board-container');
+        const newBoard = document.createElement('div');
+        newBoard.className = 'board';
+        newBoard.id = boardId;
+        newBoard.innerHTML = `
+            <div class="board-header" style="background-color: ${selectedColor};">New Board
+                <button class="menu-button" onclick="openBoardModal('${boardId}')">...</button>
+            </div>
+            <div class="task-container" ondragover="event.preventDefault()" ondrop="dropTask(event, this)"></div>
+            <button class="add-task-button" onclick="addTask('${boardId}')">+ Add Task</button>
+        `;
+        boardContainer.appendChild(newBoard);
+        saveToLocalStorage();
     }
 
     function openBoardModal(boardId) {
@@ -258,10 +259,11 @@
     }
 
     function saveBoardChanges() {
-      const boardHeader = selectedBoard.querySelector('.board-header');
-      boardHeader.childNodes[0].nodeValue = document.getElementById('board-name').value + ' ';
-      boardHeader.style.backgroundColor = selectedColor;
-      closeModal();
+        const boardHeader = selectedBoard.querySelector('.board-header');
+        boardHeader.childNodes[0].nodeValue = document.getElementById('board-name').value + ' '; // Update title
+        boardHeader.style.backgroundColor = selectedColor; // Update color
+        saveToLocalStorage(); // Save changes to localStorage
+        closeModal();
     }
 
     function deleteBoard() {
@@ -280,23 +282,23 @@
     }
 
     function addTask(boardId) {
-      const taskContainer = document.querySelector(`#${boardId} .task-container`);
-      const taskTitle = prompt("Enter task title:");
-      if (taskTitle) {
-        const taskId = `task-${Date.now()}`;
-        const task = document.createElement('div');
-        task.className = 'task';
-        task.id = taskId;
-        task.setAttribute('draggable', 'true');
-        task.addEventListener('dragstart', dragTask);
-        task.innerHTML = `
-          <h3>${taskTitle} (0)</h3>
-          <button class="menu-button" onclick="openTaskModal(this)">...</button>
-          <div class="checklist" style="display: none;"></div>
-        `;
-        taskContainer.appendChild(task);
-        reassignTaskListeners(task); // Reassign task-specific functionalities
-      }
+        const taskContainer = document.querySelector(`#${boardId} .task-container`);
+        const taskTitle = prompt("Enter task title:");
+        if (taskTitle) {
+            const taskId = `task-${Date.now()}`;
+            const task = document.createElement('div');
+            task.className = 'task';
+            task.id = taskId;
+            task.setAttribute('draggable', 'true');
+            task.addEventListener('dragstart', dragTask);
+            task.innerHTML = `
+                <h3>${taskTitle} (0)</h3>
+                <button class="menu-button" onclick="openTaskModal(this)">...</button>
+                <div class="checklist" style="display: none;"></div>
+            `;
+            taskContainer.appendChild(task);
+            saveToLocalStorage();
+        }
     }
 
     function openTaskModal(button) {
@@ -326,24 +328,25 @@
     }
 
     function closeModal() {
-      if (selectedTask) {
-        const taskNameInput = document.getElementById('task-name-input');
-        if (taskNameInput) {
-          const newTaskName = taskNameInput.value.trim();
-          const currentCount = selectedTask.querySelector('h3').textContent.match(/\(\d+\)/);
-          selectedTask.querySelector('h3').textContent = `${newTaskName} ${currentCount ? currentCount[0] : '(0)'}`;
+        if (selectedTask) {
+            const taskNameInput = document.getElementById('task-name-input');
+            if (taskNameInput) {
+                const newTaskName = taskNameInput.value.trim();
+                const currentCount = selectedTask.querySelector('h3').textContent.match(/\(\d+\)/);
+                selectedTask.querySelector('h3').textContent = `${newTaskName} ${currentCount ? currentCount[0] : '(0)'}`;
+            }
+
+            // Sync modal checklist with task checklist
+            const checklist = selectedTask.querySelector('.checklist');
+            const checklistContainer = document.getElementById('checklist-container');
+            checklist.innerHTML = checklistContainer.innerHTML;
+
+            updateTaskCount(selectedTask);
+            saveToLocalStorage(); // Save changes
         }
 
-        // Synchronize modal checklist with task checklist
-        const checklist = selectedTask.querySelector('.checklist');
-        const checklistContainer = document.getElementById('checklist-container');
-        checklist.innerHTML = checklistContainer.innerHTML;
-
-        updateTaskCount(selectedTask); // Final counter update
-      }
-
-      document.querySelectorAll('.modal').forEach(modal => modal.style.display = 'none');
-      document.getElementById('modal-overlay').style.display = 'none';
+        document.querySelectorAll('.modal').forEach(modal => modal.style.display = 'none');
+        document.getElementById('modal-overlay').style.display = 'none';
     }
 
     function dragTask(event) {
@@ -358,21 +361,22 @@
     }
 
     function addChecklistItemFromModal() {
-      const itemText = prompt("Enter checklist item:");
-      if (itemText) {
-        const checklistContainer = document.getElementById('checklist-container');
-        const item = document.createElement('div');
-        item.innerHTML = `
-          <input type="checkbox"> <span>${itemText}</span>
-        `;
-        checklistContainer.appendChild(item);
+        const itemText = prompt("Enter checklist item:");
+        if (itemText) {
+            const checklistContainer = document.getElementById('checklist-container');
+            const item = document.createElement('div');
+            item.innerHTML = `
+                <input type="checkbox"> <span>${itemText}</span>
+            `;
+            checklistContainer.appendChild(item);
 
-        // Synchronize the task's checklist with the modal
-        const checklist = selectedTask.querySelector('.checklist');
-        checklist.innerHTML = checklistContainer.innerHTML;
+            // Synchronize with task's checklist
+            const checklist = selectedTask.querySelector('.checklist');
+            checklist.innerHTML = checklistContainer.innerHTML;
 
-        updateTaskCount(selectedTask); // Update the task count
-      }
+            updateTaskCount(selectedTask);
+            saveToLocalStorage(); // Save changes
+        }
     }
 
     function updateTaskCount(task) {
@@ -405,6 +409,75 @@
         });
       }
     }
+
+    function saveToLocalStorage() {
+        const boards = [];
+        document.querySelectorAll('.board').forEach(board => {
+            const boardId = board.id;
+            const boardHeader = board.querySelector('.board-header');
+            const boardTitle = boardHeader.childNodes[0].nodeValue.trim(); // Save only the title text
+            const boardColor = boardHeader.style.backgroundColor;
+            const tasks = [];
+            board.querySelectorAll('.task').forEach(task => {
+                const taskId = task.id;
+                const taskTitle = task.querySelector('h3').textContent;
+                const checklist = [];
+                task.querySelectorAll('.checklist div').forEach(item => {
+                    checklist.push({
+                        text: item.querySelector('span').textContent,
+                        checked: item.querySelector('input').checked
+                    });
+                });
+                tasks.push({ taskId, taskTitle, checklist });
+            });
+            boards.push({ boardId, boardTitle, boardColor, tasks });
+        });
+        localStorage.setItem('kanbanData', JSON.stringify(boards));
+    }
+
+    function loadFromLocalStorage() {
+        const boardContainer = document.getElementById('board-container');
+        boardContainer.innerHTML = ''; // Clear existing boards
+        const boards = JSON.parse(localStorage.getItem('kanbanData')) || [];
+        boards.forEach(board => {
+            const newBoard = document.createElement('div');
+            newBoard.className = 'board';
+            newBoard.id = board.boardId;
+            newBoard.innerHTML = `
+                <div class="board-header" style="background-color: ${board.boardColor};">
+                    ${board.boardTitle}
+                    <button class="menu-button" onclick="openBoardModal('${board.boardId}')">...</button>
+                </div>
+                <div class="task-container" ondragover="event.preventDefault()" ondrop="dropTask(event, this)"></div>
+                <button class="add-task-button" onclick="addTask('${board.boardId}')">+ Add Task</button>
+            `;
+            boardContainer.appendChild(newBoard);
+            const taskContainer = newBoard.querySelector('.task-container');
+            board.tasks.forEach(task => {
+                const newTask = document.createElement('div');
+                newTask.className = 'task';
+                newTask.id = task.taskId;
+                newTask.setAttribute('draggable', 'true');
+                newTask.addEventListener('dragstart', dragTask);
+                newTask.innerHTML = `
+                    <h3>${task.taskTitle}</h3>
+                    <button class="menu-button" onclick="openTaskModal(this)">...</button>
+                    <div class="checklist" style="display: none;">
+                        ${task.checklist.map(item => `
+                            <div>
+                                <input type="checkbox" ${item.checked ? 'checked' : ''}>
+                                <span>${item.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                taskContainer.appendChild(newTask);
+            });
+        });
+    }
+    
+
+    window.onload = loadFromLocalStorage;
 
   </script>
 </body>
