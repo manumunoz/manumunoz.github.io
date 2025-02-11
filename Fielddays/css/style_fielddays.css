@@ -609,23 +609,27 @@ a:focus, .btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:acti
   width: 1px;
 }
 
-table {
-  width: 100%; /* Makes both tables take full available width */
+.program-text table {
+  width: 100%;
+  table-layout: fixed; /* Ensures equal column distribution */
   border-collapse: collapse;
 }
 
-th, td {
+.program-text th, 
+.program-text td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
+  word-wrap: break-word; /* Ensures long text doesn't break table width */
 }
 
-th {
+.program-text th {
   background-color: #f2f2f2;
 }
 
 .program-text {
   width: 100%;
+  display: block;
 }
-	
+
 	
