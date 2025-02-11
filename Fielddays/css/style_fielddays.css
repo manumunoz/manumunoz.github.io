@@ -609,4 +609,23 @@ a:focus, .btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:acti
   width: 1px;
 }
 
+table {
+  width: 100%; /* Makes both tables take full available width */
+  border-collapse: collapse;
+}
 
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.program-text {
+  width: 100%;
+}
+	
+	
