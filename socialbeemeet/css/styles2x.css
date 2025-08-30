@@ -1,0 +1,28 @@
+/* style2.css – Custom styles for Discussion Papers page */
+/* ---------------------------------------------------- */
+/* We first pull in all the base rules from the original site theme.      */
+@import url('styles.css');
+
+/* 1. Header background image                                          */
+/* -------------------------------------------------------------------- */
+/* Swap the hero image for the black‑and‑white city street you uploaded */
+/* File lives in /assets/img/header-bg_col_bw.jpg (one level up from    */
+/* this css/ folder).                                                   */
+header.masthead {
+  background-image: url('../assets/img/header-bg_col_bw.jpg');
+}
+
+/* 2. Mustard headline & sub‑headline                                  */
+/* -------------------------------------------------------------------- */
+/* Give the main headline ("Social Bee Lab") and the sub‑headline       */
+/* ("Discussion Paper Series" or similar) a mustard brand colour.       */
+header.masthead .masthead-heading,
+header.masthead .masthead-subheading {
+  color: #ffc800;   /* brand mustard */
+}
+
+/* Optional: if you also want the short paragraph that sits right below
+   the sub‑headline to pick up the mustard accent, uncomment below.     */
+/* header.masthead p {
+     color: #ffc800;
+   } */
