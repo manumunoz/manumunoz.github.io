@@ -11357,3 +11357,24 @@ section#contact form#contactForm :-ms-input-placeholder {
     display:block;                    /* sits neatly under the name */
     margin-top:.25rem;
 }
+/* Program table (Social Bee Meet) */
+#portfolio .program-table {
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+#portfolio .program-table th,
+#portfolio .program-table td {
+  border: 2px solid #ffc800;       /* mustard lines */
+  padding: 0.5rem 0.75rem;
+  background-color: #ffffff;       /* no shading, pure white */
+}
+
+#portfolio .program-table thead th {
+  border-bottom-width: 3px;        /* slightly stronger header line */
+}
+
+#portfolio .program-table th[scope="row"] {
+  white-space: nowrap;
+  font-weight: 600;
+}
